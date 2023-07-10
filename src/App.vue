@@ -1,30 +1,52 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  
+    <div class="container">
+      <router-view/>
+    </div>
+    <div class="background">
+    <img class="lt" :src="require('@/assets/images/lt.png')">
+    <img class="rd" :src="require('@/assets/images/rd.png')">
+  </div>
 </template>
-
+<script>
+  
+    export default {
+      component:{
+      },
+      data () {
+        return {
+        }
+      }
+    }
+</script>
 <style lang="scss">
+
+@import "@/assets/css/app.scss";
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: #057DCD;
 }
-
-nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
+.background{
+  img{
+    width: 35%;
+    vertical-align: bottom;
+    z-index: -100;
+  }
+  .lt{
+    position: fixed;
+    top: -20%;
+    left: 0;
+  }
+  .rd{
+    position: fixed;
+    bottom: -15%;
+    right: 0;
   }
 }
+
+
 </style>
