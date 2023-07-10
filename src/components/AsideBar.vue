@@ -2,7 +2,7 @@
     <Menu :theme="theme" active-name="1" class="sidebar">
         <h1 class="logo">
             <router-link to="/news">
-                <img src="../assets/images/AHT-BACK-LOGO-V.png" alt="aht-logo">
+                <img :src="require('@/assets/images/AHT-BACK-LOGO-V.png')" alt="aht-logo">
             </router-link>
         </h1>
         <MenuItem name="1" to="/news" class="news">

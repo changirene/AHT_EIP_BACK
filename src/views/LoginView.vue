@@ -1,5 +1,5 @@
 <template>
-  <h2><img src="../assets/images/AHT-BACK-LOGO.png" alt="aht-logo"></h2>
+  <h2><img :src="require('@/assets/images/AHT-BACK-LOGO.png')" alt="aht-logo"></h2>
   <div class="login">
       <h3>使用者登入</h3>
       <!-- <Login @on-submit="handleSubmit"> -->
