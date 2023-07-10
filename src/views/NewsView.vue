@@ -4,16 +4,16 @@
       <header>
         <h2>最新公告管理</h2>
         <div class="logout">
-          <button>登出</button>
+          <router-link to="/"><button>登出</button></router-link> 
         </div>
       </header>
-      <Table class="custom-table" stripe :columns="columns" :data="data">
+      <Table class="custom-table" stripe :columns="columns" :data="list" height="467px">
         <template #news_id="{ row }">
             <p>{{ row.news_id }}</p>
         </template>
         
         <template #news_status="{ row }">
-            <Switch size="large"  true-color="#057DCD" :before-change="handleBeforeChange">
+            <Switch size="large" v-model="news_status" true-color="#057DCD" :before-change="handleBeforeChange">
                 <template #open>
                   <span>上架</span>
                 </template>
@@ -28,55 +28,88 @@
             v-model="modal3[index]"
             title="編輯最新消息"
             ok-text="確認修改"
-            cancel-text="取消">
+            cancel-text="取消"
+            @on-ok="onOK"
+            >
             
-              <Form :model="formItem" :label-width="80">
-              <FormItem label="Input">
-              <Input v-model="formItem.input" placeholder="Enter something..."></Input>
-              </FormItem>
+        <Form :model="formItem" :label-width="80" :data="newsList">
+          <FormItem label="編號" :model="newsList">
+            <text>{{ news_id }}</text>
+          </FormItem>
+          <FormItem label="標題" >
+            <Input v-model="newsList.news_title" placeholder="請輸入標題"></Input>
+          </FormItem>
               
+          <FormItem label="內容" >
+            <Input v-model="newsList.news_content" type="textarea" :autosize="{minRows: 5}" placeholder="請輸入消息內容"></Input>
+          </FormItem>
+          <FormItem label="狀態">
+            <i-switch v-model="news_status" size="large">
+                <template #open>
+                  <span>上架</span>
+                </template>
+                <template #close>
+                  <span>下架</span>
+                </template>
+            </i-switch>
+            </FormItem>
+        </Form>
+      </Modal>
 
-             <FormItem label="Switch">
-              <i-switch v-model="formItem.switch" size="large">
-                  <template #open>
-                    <span>On</span>
-                  </template>
-                  <template #close>
-                    <span>Off</span>
-                  </template>
-              </i-switch>
-          </FormItem>
-          <FormItem label="Text">
-              <Input v-model="formItem.textarea" type="textarea" :autosize="{minRows: 2,maxRows: 5}" placeholder="Enter something..."></Input>
-          </FormItem>
-          
-      </Form>
-        </Modal>
         </template>
     </Table>
-    <Page :total="100" :page-size="9" />
+    <div class="news-pagination">
+        <span
+          v-if="page != 1"
+          class="pages__button_prev"
+          @click="setPage(page - 1)"
+        >
+          &lt;
+        </span>
+        <span
+          v-for="p in pages"
+          :key="p.id"
+          @click="setPage(p)"
+          :class="{ pages__button: true, 'pages__button--active': p == page }"
+        >
+          {{ p }}
+        </span>
+        <span
+          v-if="page != pages.length"
+          class="pages__button_next"
+          @click="setPage(page + 1)"
+        >
+          &gt;
+        </span>
+      </div>
     </div>
   </template>
   
   <script>
   
   import AsideBar from '@/components/AsideBar.vue'
+  import { Page } from 'view-ui-plus'
   
   export default {
     name: 'NewsView',
     components: {
       AsideBar,
+      Page
     },
     data () {
             return {
-              value:true,
               modal1: false,  //新增彈窗預設關閉
               modal3: [],
+              news_status:true,
               formItem: {
                     input: '',
                     switch: true,
                     textarea: ''
                 },
+              page: 0, //當前頁碼
+              pages: [], //總共頁數
+              perPage: 9, //每頁多少項目
+              list: [], //當前顯示項目
               columns: [
                   {
                       title: '編號',
@@ -95,97 +128,152 @@
                   {
                       title: '標題',
                       key: 'news_title',
-                      width: 650,
+                      // width: 650,
                   },
                   {
                       title: '狀態',
                       slot: 'news_status',
-                      align: 'center'
+                      align: 'center',
+                      width: 120,
                   },
                   {
                       title: '編輯',
                       slot: 'edit',
-                      align: 'center'
+                      align: 'center',
+                      width: 120,
                   }
               ],
-              data: [
+              newsList: [
                   {
                       news_id: 1,
-                      news_add_date: '2023.06.23',
+                      news_add_date: '2023.06.30',
                       news_title: '人事異動通知',
                       news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
                   },
                   {
                       news_id: 2,
-                      news_add_date: '2023.06.23',
+                      news_add_date: '2023.06.29',
                       news_title: '人事異動通知',
                       news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
                   },
                   {
                       news_id: 3,
-                      news_add_date: '2023.06.23',
+                      news_add_date: '2023.06.28',
                       news_title: '人事異動通知',
                       news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
                   },
                   {
                       news_id: 4,
-                      news_add_date: '2023.06.23',
+                      news_add_date: '2023.06.27',
                       news_title: '人事異動通知',
                       news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
                   },
                   {
                       news_id: 5,
-                      news_add_date: '2023.06.23',
+                      news_add_date: '2023.06.26',
                       news_title: '人事異動通知',
                       news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
                   },
                   {
                       news_id: 6,
-                      news_add_date: '2023.06.23',
+                      news_add_date: '2023.06.25',
                       news_title: '人事異動通知',
                       news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
                   },
                   {
                       news_id: 7,
-                      news_add_date: '2023.06.23',
+                      news_add_date: '2023.06.24',
                       news_title: '人事異動通知',
                       news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
                   },
                   {
                       news_id: 8,
                       news_add_date: '2023.06.23',
                       news_title: '人事異動通知',
                       news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
                   },
                   {
                       news_id: 9,
-                      news_add_date: '2023.06.23',
+                      news_add_date: '2023.06.22',
                       news_title: '人事異動通知',
                       news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
+                  },
+                  {
+                      news_id: 10,
+                      news_add_date: '2023.06.21',
+                      news_title: '人事異動通知',
+                      news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
+                  },
+                  {
+                      news_id: 11,
+                      news_add_date: '2023.06.20',
+                      news_title: '人事異動通知',
+                      news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
+                  },
+                  {
+                      news_id: 12,
+                      news_add_date: '2023.06.19',
+                      news_title: '人事異動通知',
+                      news_status: 1,
+                      newa_content:'人事異動通知人事異動通知人事異動通知'
                   }
               ]
             }
         },
     methods: {
       handleBeforeChange () {
-                return new Promise((resolve) => {
-                    this.$Modal.confirm({
-                        title: '更改狀態',
-                        content: '確認更改當前狀態?',
-                        onOk: () => {
-                            resolve();
-                        }
-                    });
-                });
-              },
-              clickEditBtn(index) {
-              this.modal3[index] = true;
-              },
-              
+        return new Promise((resolve) => {
+            this.$Modal.confirm({
+                title: '更改狀態',
+                content: '確認更改當前狀態?',
+                onOk: () => {
+                    resolve();
+                }
+            });
+        });
+      },
+      clickEditBtn(index) {
+        this.modal3[index] = true;
+      },
+      onOK(){
+          this.$Message.info('編輯成功');
+      },
+      setPage(p) {
+      if (p != this.page) {
+        this.page = p;
+        let minI = this.perPage * this.page - this.perPage;
+        let maxI = this.perPage * this.page;
+        this.list.length = 0;
+        for (let i = minI; i < maxI && i < this.newsList.length; i++) {
+          this.list.push(this.newsList[i]);
+        }
+      }
+    },
+    },
+    mounted() {
+    let pagesAmount = Math.ceil(this.newsList.length / this.perPage);
+    for (let i = 1; i <= pagesAmount; i++) {
+      this.pages.push(i);
     }
+
+    this.setPage(1);
+  },
+    
   }
   </script>
   <style lang="scss" scoped>
+  
   .wrapper{
     width: 80%;
     margin: 0 20px 0 270px;
@@ -219,8 +307,27 @@
       margin: 30px 10px;
       
     }
+    .news-pagination {
+      display: flex;
+      justify-content: center;
+      margin: 5px;
+      .pages__button, .pages__button_prev, .pages__button_next {
+        cursor: pointer;
+        font-size: 14px;
+        background-color: #fff;
+        border: 1px solid #d2d2d2;
+        color: #747474;
+        padding: 9px 12px;
+        margin: 5px;
+        border-radius: 5px;
+      }
+
+      .pages__button:hover, .pages__button--active {
+        border: 1px solid #057DCD;
+        color: #057DCD;
+      }
+    }
   }
- 
   
   </style>
   
