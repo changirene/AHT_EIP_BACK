@@ -7,13 +7,56 @@
           <router-link to="/"><button>登出</button></router-link> 
         </div>
       </header>
-      <Table class="custom-table" stripe :columns="columns" :data="list" height="467px">
+      <!-- 新增按鈕 -->
+      <Button type="primary" class="add" @click="modal = true">新增 +</Button>
+      <Modal
+            v-model="modal"
+            title="新增最新消息"
+            ok-text="確認新增"
+            cancel-text="取消"
+            @on-cancel="cancelbtn"
+            >
+            
+        <Form v-model="addList" :label-width="80">
+          <FormItem label="編號">
+            <text>{{ addList.news_id }}</text>
+          </FormItem>
+          <FormItem label="上架日期">
+            <DatePicker type="date" v-model="addList.news_add_date" placeholder="請選擇日期" style="width: 200px" />
+          </FormItem>
+
+          <FormItem label="標題" >
+            <Input placeholder="請輸入標題" v-model="addList.news_title"></Input>
+          </FormItem>
+              
+          <FormItem label="內容" >
+            <Input type="textarea" v-model="addList.news_content" :autosize="{minRows: 5}" placeholder="請輸入消息內容"></Input>
+          </FormItem>
+          <FormItem label="狀態" >
+            <i-switch size="large" v-model="addList.news_status">
+                <template #open>
+                  <span>上架</span>
+                </template>
+                <template #close>
+                  <span>下架</span>
+                </template>
+            </i-switch>
+            </FormItem>
+        </Form>
+      </Modal>
+
+      <Table class="custom-table" stripe :columns="columns" :data="list" height="420px">
         <template #news_id="{ row }">
             <p>{{ row.news_id }}</p>
         </template>
         
         <template #news_status="{ row }">
-            <Switch size="large" v-model="news_status" true-color="#057DCD" :before-change="handleBeforeChange">
+            <Switch 
+            size="large" 
+            :value="row.news_status" 
+            true-color="#057DCD" 
+            :before-change="handleBeforeChange" 
+            >
                 <template #open>
                   <span>上架</span>
                 </template>
@@ -22,29 +65,34 @@
                 </template>
             </Switch>
         </template>
-        <template #edit="{index}">
-          <Button type="primary" @click="clickEditBtn(index)">編輯</Button>
+        <template #edit="{row}">
+          <Button type="primary" @click="clickEditBtn(row.news_id)">編輯</Button>
           <Modal
-            v-model="modal3[index]"
+            v-model="modal3[row.news_id]"
             title="編輯最新消息"
             ok-text="確認修改"
             cancel-text="取消"
             @on-ok="onOK"
             >
             
-        <Form :model="formItem" :label-width="80" :data="newsList">
-          <FormItem label="編號" :model="newsList">
-            <text>{{ news_id }}</text>
+        <Form v-model="list" :label-width="80">
+          <FormItem label="編號">
+            <text>{{ row.news_id }}</text>
           </FormItem>
+          <FormItem label="上架日期">
+            <!-- <DatePicker type="date" v-model="row.news_add_date" placeholder="請選擇日期" style="width: 200px" /> -->
+            <DatePicker type="date" placeholder="請選擇日期" style="width: 200px" />
+          </FormItem>
+
           <FormItem label="標題" >
-            <Input v-model="newsList.news_title" placeholder="請輸入標題"></Input>
+            <Input v-model="row.news_title" placeholder="請輸入標題"></Input>
           </FormItem>
               
           <FormItem label="內容" >
-            <Input v-model="newsList.news_content" type="textarea" :autosize="{minRows: 5}" placeholder="請輸入消息內容"></Input>
+            <Input v-model="row.news_content" type="textarea" :autosize="{minRows: 5}" placeholder="請輸入消息內容"></Input>
           </FormItem>
-          <FormItem label="狀態">
-            <i-switch v-model="news_status" size="large">
+          <FormItem label="狀態" >
+            <i-switch size="large" v-model="row.news_status">
                 <template #open>
                   <span>上架</span>
                 </template>
@@ -88,19 +136,19 @@
   <script>
   
   import AsideBar from '@/components/AsideBar.vue'
-  import { Page } from 'view-ui-plus'
   
   export default {
     name: 'NewsView',
     components: {
       AsideBar,
-      Page
     },
     data () {
             return {
+              modal: false,
               modal1: false,  //新增彈窗預設關閉
               modal3: [],
               news_status:true,
+              switchStatus:true,
               formItem: {
                     input: '',
                     switch: true,
@@ -108,7 +156,7 @@
                 },
               page: 0, //當前頁碼
               pages: [], //總共頁數
-              perPage: 9, //每頁多少項目
+              perPage: 8, //每頁多少項目
               list: [], //當前顯示項目
               columns: [
                   {
@@ -149,7 +197,7 @@
                       news_add_date: '2023.06.30',
                       news_title: '人事異動通知',
                       news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
+                      newa_content:'人事異動通知人事異動通知人事異動通知',
                   },
                   {
                       news_id: 2,
@@ -228,7 +276,21 @@
                       news_status: 1,
                       newa_content:'人事異動通知人事異動通知人事異動通知'
                   }
-              ]
+              ],
+              addList: {
+                news_id: '',
+                news_add_date: '',
+                news_title: '',
+                news_status: '',
+                newa_content: '',
+              },
+              resetList: {
+                news_id: '',
+                news_add_date: '',
+                news_title: '',
+                news_status: '',
+                newa_content: '',
+              },
             }
         },
     methods: {
@@ -243,33 +305,39 @@
             });
         });
       },
-      clickEditBtn(index) {
-        this.modal3[index] = true;
+      clickEditBtn(id) {
+        const item = this.newsList.find(item => item.news_id === id);
+        if (item) {
+          this.modal3[id] = true;
+        }
       },
       onOK(){
-          this.$Message.info('編輯成功');
+        const news_add_date = new Date();
+        news_add_date.toLocaleDateString();
+        this.$Message.info('編輯成功');
+      },
+      cancelbtn(){
+        this.addList = {...this.resetList};
       },
       setPage(p) {
-      if (p != this.page) {
-        this.page = p;
-        let minI = this.perPage * this.page - this.perPage;
-        let maxI = this.perPage * this.page;
-        this.list.length = 0;
-        for (let i = minI; i < maxI && i < this.newsList.length; i++) {
-          this.list.push(this.newsList[i]);
-        }
-      }
-    },
+        if (p != this.page) {
+          this.page = p;
+          let minI = this.perPage * this.page - this.perPage;
+          let maxI = this.perPage * this.page;
+          this.list.length = 0;
+          for (let i = minI; i < maxI && i < this.newsList.length; i++) {
+            this.list.push(this.newsList[i]);
+            }
+          }
+      },
     },
     mounted() {
-    let pagesAmount = Math.ceil(this.newsList.length / this.perPage);
-    for (let i = 1; i <= pagesAmount; i++) {
-      this.pages.push(i);
-    }
-
-    this.setPage(1);
-  },
-    
+      let pagesAmount = Math.ceil(this.newsList.length / this.perPage);
+      for (let i = 1; i <= pagesAmount; i++) {
+        this.pages.push(i);
+      }
+      this.setPage(1);
+    },
   }
   </script>
   <style lang="scss" scoped>
@@ -279,6 +347,9 @@
     margin: 0 20px 0 270px;
     padding-top: 10px;
     background-color: #ffffff00;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
     header{
       display: flex;
       justify-content: space-between;
@@ -302,6 +373,11 @@
           cursor: pointer;
         }
       }
+    }
+    .add{
+          width: 80px;
+          font-size: 16px;
+          margin-top: 20px;
     }
     .custom-table{
       margin: 30px 10px;

@@ -49,8 +49,8 @@ export default {
   .login{
     width: 400px;
     height: 300px;
-    border: 4px solid #99cfff;
-    box-shadow: 4px 4px 1px #c7eef9;
+    border: 6px solid #0B509B;
+    box-shadow: 6px 6px 1px #c7eef9;
     background-color: #fff;
     position: absolute;
     top: 0;
@@ -65,6 +65,7 @@ export default {
       font-weight: bold;
       text-align: center;
       margin: 20px 0;
+      color: #0B509B;
     }
     .login-form{
       button{
