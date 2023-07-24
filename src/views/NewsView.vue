@@ -14,26 +14,39 @@
             title="新增最新消息"
             ok-text="確認新增"
             cancel-text="取消"
-            @on-cancel="cancelbtn"
+            @on-cancel="addCancel"
+            @on-ok="addOk"
             >
             
         <Form v-model="addList" :label-width="80">
-          <FormItem label="編號">
-            <text>{{ addList.news_id }}</text>
+          <!-- <FormItem label="編號">
+            <text>{{ addList.NewsId }}</text>
           </FormItem>
           <FormItem label="上架日期">
-            <DatePicker type="date" v-model="addList.news_add_date" placeholder="請選擇日期" style="width: 200px" />
-          </FormItem>
+            <Space size="large" wrap>
+              <DatePicker 
+              type="date" 
+              readonly
+              v-model="addList.NewsAddDate" 
+              style="width: 200px"
+               />
+            </Space>
+          </FormItem> -->
 
-          <FormItem label="標題" >
-            <Input placeholder="請輸入標題" v-model="addList.news_title"></Input>
+          <FormItem label="標題">
+            <Input type="text" placeholder="請輸入標題" v-model="addList.NewsTitle"></Input>
           </FormItem>
               
-          <FormItem label="內容" >
-            <Input type="textarea" v-model="addList.news_content" :autosize="{minRows: 5}" placeholder="請輸入消息內容"></Input>
+          <FormItem label="內容">
+            <Input type="textarea" class="textarea" v-model="addList.NewsContent" placeholder="請輸入消息內容"></Input>
           </FormItem>
-          <FormItem label="狀態" >
-            <i-switch size="large" v-model="addList.news_status">
+          <!-- <FormItem label="狀態" >
+            <i-switch 
+            size="large" 
+            v-model="addList.NewsStatus"
+            true-value= "1"
+            false-value= "0"
+            >
                 <template #open>
                   <span>上架</span>
                 </template>
@@ -41,123 +54,102 @@
                   <span>下架</span>
                 </template>
             </i-switch>
-            </FormItem>
+            </FormItem> -->
         </Form>
       </Modal>
 
-      <Table class="custom-table" stripe :columns="columns" :data="list" height="420px">
+      <Table 
+      class="custom-table" 
+      stripe 
+      :columns="columns" 
+      :data="lists" 
+      height="420px">
         <template #news_id="{ row }">
-            <p>{{ row.news_id }}</p>
+            <p>{{ row.NewsId }}</p>
         </template>
         
         <template #news_status="{ row }">
-            <Switch 
-            size="large" 
-            :value="row.news_status" 
+          <!-- <i-switch 
+            size="large"  
             true-color="#057DCD" 
+            v-model="row.NewsStatus"
             :before-change="handleBeforeChange" 
             >
+            true-value=1
+            false-value=0
                 <template #open>
-                  <span>上架</span>
+                  <span >上架</span>
                 </template>
                 <template #close>
-                  <span>下架</span>
+                  <span >下架</span>
                 </template>
-            </Switch>
+            </i-switch> -->
         </template>
-        <template #edit="{row}">
-          <Button type="primary" @click="clickEditBtn(row.news_id)">編輯</Button>
+
+        <!-- 編輯視窗 -->
+        <template #edit="{ row}">
+          <Button type="primary" @click="editItem(row.NewsId)" class="edit-btn">編輯</Button>
           <Modal
-            v-model="modal3[row.news_id]"
+            v-model="modal3[row.NewsId]"
             title="編輯最新消息"
             ok-text="確認修改"
             cancel-text="取消"
-            @on-ok="onOK"
+            @on-ok="editOk"
+            @on-cancel="editCancel"
             >
             
-        <Form v-model="list" :label-width="80">
-          <FormItem label="編號">
-            <text>{{ row.news_id }}</text>
-          </FormItem>
-          <FormItem label="上架日期">
-            <!-- <DatePicker type="date" v-model="row.news_add_date" placeholder="請選擇日期" style="width: 200px" /> -->
-            <DatePicker type="date" placeholder="請選擇日期" style="width: 200px" />
-          </FormItem>
+            <Form v-model="lists" :label-width="80">
+              <FormItem label="編號">
+                <Input :border="false" readonly v-model="row.NewsId" style="width: 50px"></Input>
+              </FormItem>
+              <FormItem label="上架日期">
+                <Input :border="false" readonly v-model="row.NewsAddDate" style="width: 90px"></Input>
+                <!-- <Space size="large" wrap>
+                  <DatePicker readonly type="date" v-model="row.NewsAddDate" placeholder="請選擇日期" style="width: 200px" />
+                </Space> -->
+              </FormItem>
 
-          <FormItem label="標題" >
-            <Input v-model="row.news_title" placeholder="請輸入標題"></Input>
-          </FormItem>
-              
-          <FormItem label="內容" >
-            <Input v-model="row.news_content" type="textarea" :autosize="{minRows: 5}" placeholder="請輸入消息內容"></Input>
-          </FormItem>
-          <FormItem label="狀態" >
-            <i-switch size="large" v-model="row.news_status">
-                <template #open>
-                  <span>上架</span>
-                </template>
-                <template #close>
-                  <span>下架</span>
-                </template>
-            </i-switch>
-            </FormItem>
-        </Form>
-      </Modal>
-
+              <FormItem label="標題" >
+                <Input type="text" v-model="row.NewsTitle" placeholder="請輸入標題"></Input>
+              </FormItem>
+                  
+              <FormItem label="內容" >
+                <Input v-model="row.NewsContent" class="textarea" type="textarea" placeholder="請輸入消息內容"></Input>
+              </FormItem>
+            </Form>
+          </Modal>
+          <Button type="error" @click="remove(row.NewsId)">刪除</Button>
         </template>
     </Table>
-    <div class="news-pagination">
-        <span
-          v-if="page != 1"
-          class="pages__button_prev"
-          @click="setPage(page - 1)"
-        >
-          &lt;
-        </span>
-        <span
-          v-for="p in pages"
-          :key="p.id"
-          @click="setPage(p)"
-          :class="{ pages__button: true, 'pages__button--active': p == page }"
-        >
-          {{ p }}
-        </span>
-        <span
-          v-if="page != pages.length"
-          class="pages__button_next"
-          @click="setPage(page + 1)"
-        >
-          &gt;
-        </span>
-      </div>
+      <Page
+      :total="totalRows" 
+      v-model="currentPage"
+      :page-size="perPage" />
     </div>
   </template>
   
   <script>
   
-  import AsideBar from '@/components/AsideBar.vue'
+  import AsideBar from '@/components/AsideBar.vue';
+  import axios from 'axios';
+  const url = 'http://172.17.100.110:3000';
   
   export default {
     name: 'NewsView',
     components: {
       AsideBar,
     },
-    data () {
+    data () {    
             return {
-              modal: false,
-              modal1: false,  //新增彈窗預設關閉
+              modal: false, //新增彈窗
+              modal2: [],
               modal3: [],
-              news_status:true,
-              switchStatus:true,
               formItem: {
-                    input: '',
-                    switch: true,
-                    textarea: ''
+                text: '',
+                textarea: ''
                 },
-              page: 0, //當前頁碼
-              pages: [], //總共頁數
-              perPage: 8, //每頁多少項目
-              list: [], //當前顯示項目
+              currentPage: 1, //當前頁碼
+              perPage: 8,//每頁多少項目
               columns: [
                   {
                       title: '編號',
@@ -168,14 +160,14 @@
                   },
                   {
                       title: '上架日期',
-                      key: 'news_add_date',
+                      key: 'NewsAddDate',
                       align: 'center',
                       sortable: true, //是否排序
                       width: 200,
                   },
                   {
                       title: '標題',
-                      key: 'news_title',
+                      key: 'NewsTitle',
                       // width: 650,
                   },
                   {
@@ -188,157 +180,205 @@
                       title: '編輯',
                       slot: 'edit',
                       align: 'center',
-                      width: 120,
+                      width: 220,
                   }
               ],
               newsList: [
-                  {
-                      news_id: 1,
-                      news_add_date: '2023.06.30',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知',
-                  },
-                  {
-                      news_id: 2,
-                      news_add_date: '2023.06.29',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 3,
-                      news_add_date: '2023.06.28',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 4,
-                      news_add_date: '2023.06.27',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 5,
-                      news_add_date: '2023.06.26',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 6,
-                      news_add_date: '2023.06.25',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 7,
-                      news_add_date: '2023.06.24',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 8,
-                      news_add_date: '2023.06.23',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 9,
-                      news_add_date: '2023.06.22',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 10,
-                      news_add_date: '2023.06.21',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 11,
-                      news_add_date: '2023.06.20',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  },
-                  {
-                      news_id: 12,
-                      news_add_date: '2023.06.19',
-                      news_title: '人事異動通知',
-                      news_status: 1,
-                      newa_content:'人事異動通知人事異動通知人事異動通知'
-                  }
+                {
+                NewsId:1,
+                NewsAddDate:'2023/06/18',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:2,
+                NewsAddDate:'2023/06/20',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:3,
+                NewsAddDate:'2023/06/21',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:4,
+                NewsAddDate:'2023/06/22',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:5,
+                NewsAddDate:'2023/06/23',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:6,
+                NewsAddDate:'2023/06/24',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:7,
+                NewsAddDate:'2023/06/25',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:8,
+                NewsAddDate:'2023/06/26',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:9,
+                NewsAddDate:'2023/06/27',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:10,
+                NewsAddDate:'2023/06/28',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
+                {
+                NewsId:11,
+                NewsAddDate:'2023/06/29',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"0",
+                },
+                {
+                NewsId:12,
+                NewsAddDate:'2023/06/30',
+                NewsTitle:'123123',
+                NewsContent:'456456',
+                NewsStatus:"1",
+                },
               ],
               addList: {
-                news_id: '',
-                news_add_date: '',
-                news_title: '',
-                news_status: '',
-                newa_content: '',
+                NewsId:'',
+                NewsAddDate:'',
+                NewsTitle:'',
+                NewsContent:'',
+                NewsStatus:0,
               },
               resetList: {
-                news_id: '',
-                news_add_date: '',
-                news_title: '',
-                news_status: '',
-                newa_content: '',
+                NewsId:'',
+                NewsAddDate:'',
+                NewsTitle:'',
+                NewsContent:'',
+                NewsStatus:0,
+              },
+              row: {
+                NewsStatus:"0",
               },
             }
         },
     methods: {
+      
       handleBeforeChange () {
-        return new Promise((resolve) => {
+        return new Promise((resolve,reject) => {
             this.$Modal.confirm({
                 title: '更改狀態',
                 content: '確認更改當前狀態?',
                 onOk: () => {
-                    resolve();
-                }
+                  this.row.NewsStatus = this.row.NewsStatus === "1" ? "0" : "1";
+                  resolve();
+                },
+                onCancel: () => {
+                  reject();
+                },  
             });
         });
       },
-      clickEditBtn(id) {
-        const item = this.newsList.find(item => item.news_id === id);
-        if (item) {
-          this.modal3[id] = true;
-        }
+      editItem(id) {
+        this.modal3[id] = true;
+        this.addList = [...this.newsList]
+
       },
-      onOK(){
-        const news_add_date = new Date();
-        news_add_date.toLocaleDateString();
+      editOk(){
         this.$Message.info('編輯成功');
       },
-      cancelbtn(){
-        this.addList = {...this.resetList};
+      editCancel(){
+        console.log(this.addList);
       },
-      setPage(p) {
-        if (p != this.page) {
-          this.page = p;
-          let minI = this.perPage * this.page - this.perPage;
-          let maxI = this.perPage * this.page;
-          this.list.length = 0;
-          for (let i = minI; i < maxI && i < this.newsList.length; i++) {
-            this.list.push(this.newsList[i]);
-            }
-          }
+      remove(id){
+        this.modal2[id] = true;
+        this.$Modal.confirm({
+                    title: '刪除公告',
+                    content: '<p>是否確認刪除?</p>',
+                    okText: '刪除',
+                    cancelText: '取消',
+                    onOk: () => {
+                      const requestData = { NewsId: id };
+                      console.log(requestData);
+                      axios.delete(`${url}/news`, { data: requestData })
+                        .then((res) => {
+                          const index = this.newsList.findIndex(item => item.NewsId === newsId);
+                          this.newsList.splice(index, 1);
+                          this.lists = this.newsList.slice((this.currentPage - 1) * this.perPage, this.perPage * this.currentPage);
+                          console.log(res.data.data);
+                          // console.log(this.newsList);
+                          this.$Message.success('成功刪除資料');
+                        })
+                        .catch(err => {
+                          console.dir(err.response);
+                          this.$Message.error('刪除資料失敗');
+                        });
+                    },
+                });
+      },
+      
+      addOk(){
+        const maxNewsId = Math.max(...this.newsList.map(item => item.NewsId));
+        this.addList.NewsId = maxNewsId + 1;
+        this.newsList.push(this.addList);
+        this.addList = {};
+        // console.log(this.newsList);
+        
+      },
+      addCancel(){
+        this.addList = {};
       },
     },
     mounted() {
-      let pagesAmount = Math.ceil(this.newsList.length / this.perPage);
-      for (let i = 1; i <= pagesAmount; i++) {
-        this.pages.push(i);
-      }
-      this.setPage(1);
+      
+      axios.get(`${url}/news`)
+        .then((res) => {
+          this.newsList = res.data.data;
+          // console.log(this.newsList)
+        })
+        .catch(err => {
+          console.dir(err);
+        });
     },
+    computed: {
+      lists() {
+        const data = this.newsList.sort((a,b)=>b.NewsId-a.NewsId); 
+        return data.slice((this.currentPage - 1) * this.perPage, this.perPage * this.currentPage);
+        
+      },
+      totalRows() {
+        return this.newsList.length;
+      }
+    },
+    
   }
+
   </script>
   <style lang="scss" scoped>
   
@@ -381,6 +421,9 @@
     }
     .custom-table{
       margin: 30px 10px;
+      .edit-btn{
+        margin-right: 20px;
+      }
       
     }
     .news-pagination {

@@ -38,3 +38,20 @@
     padding: 0 20px;
     font-weight: bold;
   }
+  .ivu-btn-error{
+      background-color: #fff;
+      color: red;
+      border-radius: 20px;
+      font-weight: bold;
+      padding: 0 20px;
+  }
+  
+
+// 文字框
+textarea.ivu-input{
+    min-height:150px;
+    height:150px;
+}
+.ivu-table-wrapper{
+    overflow: visible;
+}
