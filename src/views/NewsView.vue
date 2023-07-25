@@ -141,6 +141,7 @@
     },
     data () {    
             return {
+              loading:false,
               modal: false, //新增彈窗
               modal2: [],
               modal3: [],
@@ -184,107 +185,98 @@
                   }
               ],
               newsList: [
-                {
-                NewsId:1,
-                NewsAddDate:'2023/06/18',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:2,
-                NewsAddDate:'2023/06/20',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:3,
-                NewsAddDate:'2023/06/21',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:4,
-                NewsAddDate:'2023/06/22',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:5,
-                NewsAddDate:'2023/06/23',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:6,
-                NewsAddDate:'2023/06/24',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:7,
-                NewsAddDate:'2023/06/25',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:8,
-                NewsAddDate:'2023/06/26',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:9,
-                NewsAddDate:'2023/06/27',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:10,
-                NewsAddDate:'2023/06/28',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
-                {
-                NewsId:11,
-                NewsAddDate:'2023/06/29',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"0",
-                },
-                {
-                NewsId:12,
-                NewsAddDate:'2023/06/30',
-                NewsTitle:'123123',
-                NewsContent:'456456',
-                NewsStatus:"1",
-                },
+                // {
+                // NewsId:1,
+                // NewsAddDate:'2023/06/18',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:2,
+                // NewsAddDate:'2023/06/20',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:3,
+                // NewsAddDate:'2023/06/21',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:4,
+                // NewsAddDate:'2023/06/22',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:5,
+                // NewsAddDate:'2023/06/23',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:6,
+                // NewsAddDate:'2023/06/24',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:7,
+                // NewsAddDate:'2023/06/25',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:8,
+                // NewsAddDate:'2023/06/26',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:9,
+                // NewsAddDate:'2023/06/27',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:10,
+                // NewsAddDate:'2023/06/28',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
+                // {
+                // NewsId:11,
+                // NewsAddDate:'2023/06/29',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"0",
+                // },
+                // {
+                // NewsId:12,
+                // NewsAddDate:'2023/06/30',
+                // NewsTitle:'123123',
+                // NewsContent:'456456',
+                // NewsStatus:"1",
+                // },
               ],
               addList: {
-                NewsId:'',
-                NewsAddDate:'',
                 NewsTitle:'',
                 NewsContent:'',
-                NewsStatus:0,
               },
               resetList: {
-                NewsId:'',
-                NewsAddDate:'',
                 NewsTitle:'',
                 NewsContent:'',
-                NewsStatus:0,
-              },
-              row: {
-                NewsStatus:"0",
               },
             }
         },
@@ -308,13 +300,14 @@
       editItem(id) {
         this.modal3[id] = true;
         this.addList = [...this.newsList]
+        console.log(id);
 
       },
       editOk(){
         this.$Message.info('編輯成功');
       },
       editCancel(){
-        console.log(this.addList);
+        // console.log(this.addList);
       },
       remove(id){
         this.modal2[id] = true;
@@ -324,15 +317,13 @@
                     okText: '刪除',
                     cancelText: '取消',
                     onOk: () => {
-                      const requestData = { NewsId: id };
-                      console.log(requestData);
-                      axios.delete(`${url}/news`, { data: requestData })
+                      const deleteData = { NewsId: id };
+                      console.log(deleteData);
+                      axios.delete(`${url}/news`, { data: deleteData })
                         .then((res) => {
-                          const index = this.newsList.findIndex(item => item.NewsId === newsId);
+                          const index = this.newsList.findIndex(item => item.NewsId === id);
                           this.newsList.splice(index, 1);
-                          this.lists = this.newsList.slice((this.currentPage - 1) * this.perPage, this.perPage * this.currentPage);
-                          console.log(res.data.data);
-                          // console.log(this.newsList);
+                          // console.log(res.data.data,this.newsList);
                           this.$Message.success('成功刪除資料');
                         })
                         .catch(err => {
@@ -342,21 +333,27 @@
                     },
                 });
       },
-      
       addOk(){
-        const maxNewsId = Math.max(...this.newsList.map(item => item.NewsId));
-        this.addList.NewsId = maxNewsId + 1;
-        this.newsList.push(this.addList);
-        this.addList = {};
-        // console.log(this.newsList);
-        
+        axios.put(`${url}/news`, this.addList)
+          .then((res)=>{
+            const maxNewsId = Math.max(...this.newsList.map(item => item.NewsId));
+            this.addList.NewsId = maxNewsId + 1;
+            this.newsList.push(this.addList);
+            this.addList = {};
+            // console.log(res.data.data);
+            this.$Message.success('新增資料成功');
+          })
+        .catch(err => {
+            this.addList = {};
+            console.dir(err.response);
+            this.$Message.error('新增資料失敗');
+          });
       },
       addCancel(){
         this.addList = {};
       },
     },
     mounted() {
-      
       axios.get(`${url}/news`)
         .then((res) => {
           this.newsList = res.data.data;
@@ -376,7 +373,7 @@
         return this.newsList.length;
       }
     },
-    
+
   }
 
   </script>

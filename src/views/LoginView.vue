@@ -25,14 +25,7 @@ export default {
             }
         },
         methods: {
-            // handleSubmit (valid, { username, password }) {
-            //     if (valid) {
-            //         this.$Modal.info({
-            //             title: '輸入的內容如下：',
-            //             content: 'username: ' + username + ' | password: ' + password
-            //         });
-            //     }
-            // }
+           
         }
 }
 </script>
