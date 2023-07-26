@@ -33,11 +33,11 @@
             </Space>
           </FormItem> -->
 
-          <FormItem label="標題">
+          <FormItem label="標題" prop="title">
             <Input type="text" placeholder="請輸入標題" v-model="addList.NewsTitle"></Input>
           </FormItem>
               
-          <FormItem label="內容">
+          <FormItem label="內容" prop="content">
             <Input type="textarea" class="textarea" v-model="addList.NewsContent" placeholder="請輸入消息內容"></Input>
           </FormItem>
           <!-- <FormItem label="狀態" >
@@ -98,7 +98,7 @@
             @on-cancel="editCancel"
             >
             
-            <Form v-model="lists" :label-width="80">
+            <Form v-model="addList" :label-width="80">
               <FormItem label="編號">
                 <Input :border="false" readonly v-model="row.NewsId" style="width: 50px"></Input>
               </FormItem>
@@ -110,11 +110,11 @@
               </FormItem>
 
               <FormItem label="標題" >
-                <Input type="text" v-model="row.NewsTitle" placeholder="請輸入標題"></Input>
+                <Input type="text" v-model="addList.NewsTitle" placeholder="請輸入標題"></Input>
               </FormItem>
                   
               <FormItem label="內容" >
-                <Input v-model="row.NewsContent" class="textarea" type="textarea" placeholder="請輸入消息內容"></Input>
+                <Input v-model="addList.NewsContent" class="textarea" type="textarea" placeholder="請輸入消息內容"></Input>
               </FormItem>
             </Form>
           </Modal>
@@ -270,6 +270,14 @@
                 // NewsStatus:"1",
                 // },
               ],
+              ruleValidate: {
+                    title: [
+                        { required: true, message: '請輸入標題', trigger: 'blur' }
+                    ],
+                    content: [
+                        { required: true, message: '請輸入內容', trigger: 'blur' }
+                    ],
+              },
               addList: {
                 NewsTitle:'',
                 NewsContent:'',
@@ -298,16 +306,40 @@
         });
       },
       editItem(id) {
+        // this.modal3[id] = true;
+        // this.addList = [...this.newsList];
         this.modal3[id] = true;
-        this.addList = [...this.newsList]
-        console.log(id);
-
+        const editData = this.newsList.find(item => item.NewsId === id);
+        this.addList = { ...editData };
       },
-      editOk(){
-        this.$Message.info('編輯成功');
+      editOk() {
+        const editData = { ...this.addList };
+        const updateData = {
+          NewsTitle: editData.NewsTitle,
+          NewsContent: editData.NewsContent
+        };
+        console.log(updateData); // 確認是否收到正確的更新資料
+
+        if (editData.NewsStatus !== undefined) {
+          updateData.NewsStatus = editData.NewsStatus;
+        }
+
+        axios.put(`${url}/news`,{ data: updateData })
+        .then((res) => {
+          console.log(res.data);
+            const index = this.newsList.findIndex(item => item.NewsId === editData.NewsId);
+            this.newsList[index] = this.editData;
+            this.$Message.success('編輯成功');
+            // this.fetchNewsList(); // 重新取得最新的資料
+          })
+          .catch(err => {
+            console.dir(err.response);
+            this.$Message.error('編輯失敗');
+          });
       },
       editCancel(){
-        // console.log(this.addList);
+        this.addList = {...this.resetList};
+        this.fetchNewsList();
       },
       remove(id){
         this.modal2[id] = true;
@@ -336,8 +368,8 @@
       addOk(){
         axios.put(`${url}/news`, this.addList)
           .then((res)=>{
-            const maxNewsId = Math.max(...this.newsList.map(item => item.NewsId));
-            this.addList.NewsId = maxNewsId + 1;
+            // const maxNewsId = Math.max(...this.newsList.map(item => item.NewsId));
+            // this.addList.NewsId = maxNewsId + 1;
             this.newsList.push(this.addList);
             this.addList = {};
             // console.log(res.data.data);
@@ -349,9 +381,35 @@
             this.$Message.error('新增資料失敗');
           });
       },
+      handleSubmit (name) {
+                this.$refs[name].validate((valid) => {
+                    if (valid) {
+                      axios.put(`${url}/news`, this.addList)
+                      .then((res)=>{
+                        const maxNewsId = Math.max(...this.newsList.map(item => item.NewsId));
+                        this.addList.NewsId = maxNewsId + 1;
+                        this.newsList.push(this.addList);
+                        this.addList = {};
+                        // console.log(res.data.data);
+                        this.$Message.success('新增資料成功');
+                      })
+                    } else {
+                      this.$Message.error('新增資料失敗');;
+                    }
+                })
+            },
       addCancel(){
         this.addList = {};
       },
+      fetchNewsList() {
+        axios.get(`${url}/news`)
+          .then((res) => {
+            this.newsList = res.data.data;
+          })
+          .catch(err => {
+            console.dir(err);
+          });
+      }
     },
     mounted() {
       axios.get(`${url}/news`)
@@ -362,6 +420,7 @@
         .catch(err => {
           console.dir(err);
         });
+        
     },
     computed: {
       lists() {
@@ -373,8 +432,8 @@
         return this.newsList.length;
       }
     },
-
   }
+
 
   </script>
   <style lang="scss" scoped>
