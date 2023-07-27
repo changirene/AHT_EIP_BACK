@@ -69,21 +69,21 @@
         </template>
         
         <template #news_status="{ row }">
-          <!-- <i-switch 
+          <i-switch 
             size="large"  
             true-color="#057DCD" 
             v-model="row.NewsStatus"
             :before-change="handleBeforeChange" 
+            :true-value=1
+            :false-value=0
             >
-            true-value=1
-            false-value=0
                 <template #open>
                   <span >上架</span>
                 </template>
                 <template #close>
                   <span >下架</span>
                 </template>
-            </i-switch> -->
+            </i-switch>
         </template>
 
         <!-- 編輯視窗 -->
@@ -198,23 +198,21 @@
                 NewsAddDate:'',
                 NewsTitle:'',
                 NewsContent:'',
+                NewsStatus:1
               },
             }
         },
     methods: {
       
       handleBeforeChange () {
-        return new Promise((resolve,reject) => {
+        return new Promise((resolve) => {
             this.$Modal.confirm({
                 title: '更改狀態',
                 content: '確認更改當前狀態?',
                 onOk: () => {
-                  this.row.NewsStatus = this.row.NewsStatus === "1" ? "0" : "1";
+                  this.addList.NewsStatus = this.addList.NewsStatus === 1 ? 0 : 1;
                   resolve();
-                },
-                onCancel: () => {
-                  reject();
-                },  
+                }
             });
         });
       },
@@ -225,13 +223,13 @@
       },
       editOk() {
         const editData = { ...this.addList };
-        console.log(editData); 
+        // console.log(editData); 
         const updateData = {
           NewsId:editData.NewsId,
           NewsTitle: editData.NewsTitle,
           NewsContent: editData.NewsContent
         };
-        console.log(updateData); 
+        // console.log(updateData); 
 
         if (editData.NewsStatus !== undefined) {
           updateData.NewsStatus = editData.NewsStatus;
