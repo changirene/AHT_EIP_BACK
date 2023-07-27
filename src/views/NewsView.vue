@@ -100,10 +100,10 @@
             
             <Form v-model="addList" :label-width="80">
               <FormItem label="編號">
-                <Input :border="false" readonly v-model="row.NewsId" style="width: 50px"></Input>
+                <Input :border="false" readonly v-model="addList.NewsId" style="width: 50px"></Input>
               </FormItem>
               <FormItem label="上架日期">
-                <Input :border="false" readonly v-model="row.NewsAddDate" style="width: 90px"></Input>
+                <Input :border="false" readonly v-model="addList.NewsAddDate" style="width: 90px"></Input>
                 <!-- <Space size="large" wrap>
                   <DatePicker readonly type="date" v-model="row.NewsAddDate" placeholder="請選擇日期" style="width: 200px" />
                 </Space> -->
@@ -184,92 +184,7 @@
                       width: 220,
                   }
               ],
-              newsList: [
-                // {
-                // NewsId:1,
-                // NewsAddDate:'2023/06/18',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:2,
-                // NewsAddDate:'2023/06/20',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:3,
-                // NewsAddDate:'2023/06/21',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:4,
-                // NewsAddDate:'2023/06/22',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:5,
-                // NewsAddDate:'2023/06/23',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:6,
-                // NewsAddDate:'2023/06/24',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:7,
-                // NewsAddDate:'2023/06/25',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:8,
-                // NewsAddDate:'2023/06/26',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:9,
-                // NewsAddDate:'2023/06/27',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:10,
-                // NewsAddDate:'2023/06/28',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-                // {
-                // NewsId:11,
-                // NewsAddDate:'2023/06/29',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"0",
-                // },
-                // {
-                // NewsId:12,
-                // NewsAddDate:'2023/06/30',
-                // NewsTitle:'123123',
-                // NewsContent:'456456',
-                // NewsStatus:"1",
-                // },
-              ],
+              newsList: [],
               ruleValidate: {
                     title: [
                         { required: true, message: '請輸入標題', trigger: 'blur' }
@@ -279,10 +194,8 @@
                     ],
               },
               addList: {
-                NewsTitle:'',
-                NewsContent:'',
-              },
-              resetList: {
+                NewsId:'',
+                NewsAddDate:'',
                 NewsTitle:'',
                 NewsContent:'',
               },
@@ -306,40 +219,42 @@
         });
       },
       editItem(id) {
-        // this.modal3[id] = true;
-        // this.addList = [...this.newsList];
         this.modal3[id] = true;
         const editData = this.newsList.find(item => item.NewsId === id);
         this.addList = { ...editData };
       },
       editOk() {
         const editData = { ...this.addList };
+        console.log(editData); 
         const updateData = {
+          NewsId:editData.NewsId,
           NewsTitle: editData.NewsTitle,
           NewsContent: editData.NewsContent
         };
-        console.log(updateData); // 確認是否收到正確的更新資料
+        console.log(updateData); 
 
         if (editData.NewsStatus !== undefined) {
           updateData.NewsStatus = editData.NewsStatus;
         }
 
-        axios.put(`${url}/news`,{ data: updateData })
-        .then((res) => {
-          console.log(res.data);
+        axios.patch(`${url}/news`, updateData )
+          .then((res) => {
             const index = this.newsList.findIndex(item => item.NewsId === editData.NewsId);
-            this.newsList[index] = this.editData;
-            this.$Message.success('編輯成功');
-            // this.fetchNewsList(); // 重新取得最新的資料
+              if (index !== -1) {
+                this.newsList[index] = { ...this.newsList[index], ...updateData };
+                this.$Message.success('編輯成功');
+              } else {
+                console.error('找不到符合條件的元素:', editData.NewsId);
+              }
+            
           })
           .catch(err => {
-            console.dir(err.response);
+            console.dir(err);
             this.$Message.error('編輯失敗');
           });
       },
       editCancel(){
-        this.addList = {...this.resetList};
-        this.fetchNewsList();
+        this.addList={};
       },
       remove(id){
         this.modal2[id] = true;
@@ -400,15 +315,6 @@
             },
       addCancel(){
         this.addList = {};
-      },
-      fetchNewsList() {
-        axios.get(`${url}/news`)
-          .then((res) => {
-            this.newsList = res.data.data;
-          })
-          .catch(err => {
-            console.dir(err);
-          });
       }
     },
     mounted() {
