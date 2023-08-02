@@ -1,60 +1,36 @@
 <template>
+  <keep-alive>
     <aside-bar/>
-    <div class="wrapper">
+  </keep-alive>
+  
+  <div class="wrapper">
+    <keep-alive>
       <header>
         <h2>最新公告管理</h2>
         <div class="logout">
           <button @click="logout">登出</button> 
         </div>
       </header>
+  </keep-alive>
       <!-- 新增按鈕 -->
-      <Button type="primary" class="add" @click="modal = true">新增 +</Button>
+      <Button type="primary" class="add" @click="modal = true" >新增 +</Button>
       <Modal
             v-model="modal"
             title="新增最新消息"
             ok-text="確認新增"
             cancel-text="取消"
-            @on-cancel="addCancel"
-            @on-ok="addOk"
+            :mask-closable="false"
+            @on-cancel="handleReset('addList')"
+            @on-ok="handleSubmit('addList')"
             >
-            
-        <Form :model="addList" :label-width="80" >
-          <!-- <FormItem label="編號">
-            <text>{{ addList.NewsId }}</text>
-          </FormItem>
-          <FormItem label="上架日期">
-            <Space size="large" wrap>
-              <DatePicker 
-              type="date" 
-              readonly
-              v-model="addList.NewsAddDate" 
-              style="width: 200px"
-               />
-            </Space>
-          </FormItem> -->
-
-          <FormItem label="標題" prop="title">
+        <Form ref="addList" :model="addList" :rules="ruleValidate" :label-width="80" >
+          <FormItem label="標題" prop="NewsTitle">
             <Input type="text" placeholder="請輸入標題" v-model="addList.NewsTitle"></Input>
           </FormItem>
               
-          <FormItem label="內容" prop="content">
+          <FormItem label="內容" prop="NewsContent">
             <Input type="textarea" class="textarea" v-model="addList.NewsContent" placeholder="請輸入消息內容"></Input>
           </FormItem>
-          <!-- <FormItem label="狀態" >
-            <i-switch 
-            size="large" 
-            v-model="addList.NewsStatus"
-            true-value= "1"
-            false-value= "0"
-            >
-                <template #open>
-                  <span>上架</span>
-                </template>
-                <template #close>
-                  <span>下架</span>
-                </template>
-            </i-switch>
-            </FormItem> -->
         </Form>
       </Modal>
 
@@ -63,6 +39,7 @@
       stripe 
       :columns="columns" 
       :data="lists" 
+      v-if="isRouterAlive"
       height="420px">
         <template #NewsId="{ row }">
             <p>{{ row.NewsId }}</p>
@@ -136,12 +113,14 @@
   const url = 'http://172.17.100.110:3000';
   
   export default {
+    inject:['reload'],
     name: 'NewsView',
     components: {
       AsideBar,
     },
     data () {    
             return {
+              isRouterAlive: true,
               NewsStatus:0, 
               modal: false, //新增彈窗
               modal2: [],
@@ -189,6 +168,14 @@
                 NewsContent:'',
                 NewsStatus:0,
               },
+              ruleValidate:{
+                NewsTitle: [
+                        { required: true, message: '請輸入標題', trigger: 'blur' }
+                    ],
+                NewsContent: [
+                    { required: true, message: '請輸入內容', trigger: 'blur' }
+                ],
+              }
             }
         },
     methods: {
@@ -203,15 +190,13 @@
                         NewsId: editData.NewsId,
                         NewsStatus: editData.NewsStatus === 1 ? 0 : 1,
                     };
-                    console.log(updateStatus);
+                    // console.log(updateStatus);
                     axios.patch(`${url}/news`, updateStatus)
                       .then((res) => {
                         console.log(res.data);
-                        // editData.NewsStatus = updateStatus.NewsStatus;
-                        // console.log(editData.NewsStatus);
-                        // this.$forceUpdate()
                         this.$Message.success('編輯成功');
                         resolve();
+                        this.reload();
                       })
                       .catch((err) => {
                         console.error(err);
@@ -224,7 +209,7 @@
       editItem(id) {
         this.modal3[id] = true;
         const editData = this.newsList.find(item => item.NewsId === id);
-        this.addList = { ...editData };
+        this.addList = {...editData};
       },
       editOk() {
         const editData = { ...this.addList };
@@ -233,7 +218,6 @@
           NewsId:editData.NewsId,
           NewsTitle: editData.NewsTitle,
           NewsContent: editData.NewsContent,
-          NewsStatus: editData.NewsStatus,
         };
         // console.log(updateData); 
 
@@ -241,7 +225,9 @@
           .then((res) => {
             const index = this.newsList.findIndex(item => item.NewsId === editData.NewsId);
               if (index !== -1) {
-                this.newsList[index] = { ...this.newsList[index], ...updateData };
+                this.newsList[index].NewsTitle = updateData.NewsTitle;
+                this.newsList[index].NewsContent = updateData.NewsContent;
+                // this.reload();
                 this.$Message.success('編輯成功');
               } else {
                 console.error('找不到符合條件的元素:', editData.NewsId);
@@ -258,45 +244,59 @@
       remove(id){
         this.modal2[id] = true;
         this.$Modal.confirm({
-                    title: '刪除公告',
-                    content: '<p>是否確認刪除?</p>',
-                    okText: '刪除',
-                    cancelText: '取消',
-                    onOk: () => {
-                      const deleteData = { NewsId: id };
-                      console.log(deleteData);
-                      axios.delete(`${url}/news`, { data: deleteData })
-                        .then((res) => {
-                          const index = this.newsList.findIndex(item => item.NewsId === id);
-                          this.newsList.splice(index, 1);
-                          // console.log(res.data.data,this.newsList);
-                          this.$Message.success('成功刪除資料');
-                        })
-                        .catch(err => {
-                          console.dir(err.response);
-                          this.$Message.error('刪除資料失敗');
-                        });
-                    },
+            title: '刪除公告',
+            content: '<p>是否確認刪除?</p>',
+            okText: '刪除',
+            cancelText: '取消',
+            onOk: () => {
+              const deleteData = { NewsId: id };
+              console.log(deleteData);
+              axios.delete(`${url}/news`, { data: deleteData })
+                .then((res) => {
+                  const index = this.newsList.findIndex(item => item.NewsId === id);
+                  this.newsList.splice(index, 1);
+                  // console.log(res.data.data,this.newsList);
+                  this.$Message.success('成功刪除資料');
+                  this.reload();
+                })
+                .catch(err => {
+                  console.dir(err.response);
+                  this.$Message.error('刪除資料失敗');
                 });
+            },
+        });
       },
-      addOk(){
-        axios.put(`${url}/news`, this.addList)
-          .then((res)=>{
-            const maxNewsId = Math.max(...this.newsList.map(item => item.NewsId));
-            this.addList.NewsId = maxNewsId + 1;
-            this.newsList.push(this.addList);
-            this.addList = {};
-            // console.log(res.data.data);
-            this.$Message.success('新增資料成功');
+      handleSubmit (name) {
+          this.$refs[name].validate((valid) => {
+              if (valid) {
+                this.addList.NewsId = null; 
+                this.addList.NewsAddDate = null; 
+                this.addList.NewsStatus = 0; 
+                axios.put(`${url}/news`, this.addList)
+                  .then((res)=>{
+                    const maxNewsId = Math.max(...this.newsList.map(item => item.NewsId));
+                    this.addList.NewsId = maxNewsId + 1;
+                    this.newsList.push({
+                    ...this.addList,
+                    NewsId: res.data.NewsId, 
+                    NewsAddDate: res.data.NewsAddDate,
+                    NewsStatus: 0, 
+                  });
+                  this.addList = {};
+                  this.$Message.success('新增資料成功');
+                  })
+                  .catch(err => {
+                      this.addList = {};
+                      console.dir(err.response);
+                      this.$Message.error('新增資料失敗');
+                    });
+                } else {
+                  this.$Message.error('新增資料失敗');
+                }
           })
-        .catch(err => {
-            this.addList = {};
-            console.dir(err.response);
-            this.$Message.error('新增資料失敗');
-          });
       },
-      addCancel(){
-        this.addList = {};
+      handleReset (name) {
+          this.$refs[name].resetFields();
       },
       logout() {
         axios.delete(`${url}/logout`)
@@ -309,7 +309,7 @@
           .catch(err => {
             console.dir(err.response);
           });
-      }
+      },
     },
     mounted() {
       axios.get(`${url}/news`)
@@ -319,8 +319,6 @@
           for(let i = 0 ; i<=res.data.data.length ; i++){
             return res.data.data[i].newsStatus
           }
-          // console.log(this.newsList)
-          console.log(this.newsStatus)
         })
         .catch(err => {
           console.dir(err);
@@ -338,12 +336,8 @@
       }
     },
   }
-  
-
-
   </script>
   <style lang="scss" scoped>
-  
   .wrapper{
     width: 80%;
     margin: 0 20px 0 270px;
@@ -402,13 +396,11 @@
         margin: 5px;
         border-radius: 5px;
       }
-
       .pages__button:hover, .pages__button--active {
         border: 1px solid #057DCD;
         color: #057DCD;
       }
     }
   }
-  
   </style>
   
